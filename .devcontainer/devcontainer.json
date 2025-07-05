@@ -1,0 +1,44 @@
+{
+  "name": "match-search",
+  "build": {
+    "dockerfile": "ubuntu-noble.docker",
+  },
+  "remoteUser": "ubuntu",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/build,target=/build,type=bind,consistency=cached",
+  ],
+  "shutdownAction": "stopContainer",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/src,type=bind,consistency=cached",
+  "workspaceFolder": "/src",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "[cpp]": {
+          "editor.formatOnSave": true
+        },
+        "cmake.buildDirectory": "/build",
+        "cmake.options.statusBarVisibility": "visible",
+        "cmake.sourceDirectory": "${workspaceFolder}",
+        "C_Cpp.formatting": "clangFormat",
+        "C_Cpp.intelliSenseEngine": "disabled",
+        "clangd.path": "clangd",
+        "clangd.arguments": [
+          "--clang-tidy",
+          "--compile-commands-dir=/build",
+          "--completion-style=detailed",
+          "--cross-file-rename",
+          "--fallback-style=none",
+          "--header-insertion=never",
+          "-pretty"
+        ],
+        "clangd.onConfigChanged": "restart",
+      }
+    }
+  }
+}
