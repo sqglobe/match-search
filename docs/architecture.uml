@@ -1,0 +1,28 @@
+@startuml
+scale 1024 width
+skinparam componentStyle rectangle
+
+component "match-search" as main
+component gui
+component "files-search" as lib
+
+interface Seacher
+interface MatchesCollector
+
+main .down.> lib: init
+main .down.> gui: init
+
+lib -down- Seacher
+gui -down-> Seacher: find matches
+
+lib -left- MatchesCollector
+gui <.right. MatchesCollector: result/error
+
+' needed for proper positioning
+' this link isn't visible
+Seacher -[hidden]- MatchesCollector
+
+
+
+
+@enduml
