@@ -1,0 +1,7 @@
+# base platform
+FROM ghcr.io/sqglobe/match-search-ubuntu-noble:latest
+
+RUN apt-get install -y clangd
+
+# path for source-code  
+RUN mkdir -p /src /build
