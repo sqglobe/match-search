@@ -30,11 +30,10 @@ jobs:
       - name: Save artifacts
         run: |
           cd build 
-          mkdir artefacts
-          cmake --install . --prefix artefacts
-          tar -czf build-artifacts.tar.gz artefacts/
+          mkdir artifacts
+          cmake --install . --prefix artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cmake-build-${{ github.sha }}
-          path: build/build-artifacts.tar.gz 
+          name: match-search-${{ github.sha }}
+          path: build/artifacts/*
