@@ -9,3 +9,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add integration with ctest
 include(CTest)
 
+# Include source root folder
+add_subdirectory(modules)
