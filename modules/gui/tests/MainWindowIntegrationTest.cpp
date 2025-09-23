@@ -12,11 +12,12 @@
 #include <optional>
 
 #include "MainWindowImpl.h"
-#include "TestRunner.h"
 #include "files-search/Factory.h"
 #include "mocks/DialogsMock.h"
 
 using ::testing::_;
+using ::testing::AllOf;
+using ::testing::ContainsRegex;
 using ::testing::InSequence;
 using ::testing::Return;
 using ::testing::StrictMock;
@@ -29,29 +30,20 @@ void PrintTo(const QString &s, ::std::ostream *os) {
   *os << "'" << s.toStdString() << "'";
 }
 
-class MainWindowIntegrationTest : public QObject {
-  Q_OBJECT
- private slots:
+class MainWindowIntegrationTest : public testing::Test {
+ protected:
   // Setup environment before each test-case invocation
-  void init();
+  void SetUp() override;
   // Cleanup step after each test-case
-  void cleanup();
- private slots:
-  void selectedNonExistingFolderTest();
-  void invalidRegexTest();
-  void searchCanceledTest();
-  void emptyFolderSelectedTest();
-  void directoryWithoutSubfoldersAreSelectedTest();
-  void directoryWithSubfoldersAreSelectedTest();
-  void regexNotMatchTest();
+  void TearDown() override;
 
- private:
+ protected:
   std::unique_ptr<MainWindowImpl> m_mainWindow;
   StrictMock<DialogsMock> *m_dialogs = nullptr;
   fs::path RootTestFolder;
 };
 
-void MainWindowIntegrationTest::init() {
+void MainWindowIntegrationTest::SetUp() {
   // Construct a mock
   auto dialogs = std::make_unique<StrictMock<DialogsMock>>();
   m_dialogs = dialogs.get();
@@ -72,19 +64,19 @@ void MainWindowIntegrationTest::init() {
   }
 
   // Create the root folder
-  QVERIFY(fs::create_directory(RootTestFolder));
+  ASSERT_TRUE(fs::create_directory(RootTestFolder));
 
   // The empty folder to check that passing empty folder results no founds
-  QVERIFY(fs::create_directory(RootTestFolder / "emptyFolder"));
+  ASSERT_TRUE(fs::create_directory(RootTestFolder / "emptyFolder"));
 
   // Folder that contains real files
-  QVERIFY(fs::create_directory(RootTestFolder / "folderWithFiles"));
+  ASSERT_TRUE(fs::create_directory(RootTestFolder / "folderWithFiles"));
 
   {
     auto textFilePath = RootTestFolder / "folderWithFiles" / "text.txt";
     // Create text file with content to check if search is working
     std::ofstream textFile(textFilePath.native());
-    QVERIFY(textFile.is_open());
+    ASSERT_TRUE(textFile.is_open());
     textFile << "One line test\n"
              << "Another line test\n"
              << "Third line check";
@@ -104,13 +96,13 @@ void MainWindowIntegrationTest::init() {
     auto noPermFilePath = RootTestFolder / "folderWithFiles" / "no-perms.txt";
     // Create a file that has no permissions read from, so it will cause error
     std::ofstream noPermFile(noPermFilePath.native());
-    QVERIFY(noPermFile.is_open());
+    ASSERT_TRUE(noPermFile.is_open());
   }
   fs::permissions(RootTestFolder / "folderWithFiles" / "no-perms.txt",
                   fs::perms::none);
 }
 
-void MainWindowIntegrationTest::cleanup() {
+void MainWindowIntegrationTest::TearDown() {
   // Destroy main window
   m_mainWindow.reset();
   // Cleanup mock
@@ -118,10 +110,10 @@ void MainWindowIntegrationTest::cleanup() {
   // Delete temporary folder
   auto cnt = fs::remove_all(RootTestFolder);
   // Check that folder is removed
-  QCOMPARE_GT(cnt, 0);
+  ASSERT_GE(cnt, 0);
 }
 
-void MainWindowIntegrationTest::selectedNonExistingFolderTest() {
+TEST_F(MainWindowIntegrationTest, selectedNonExistingFolder) {
   // Construct path to non-existing folder
   auto selectedFolder = (RootTestFolder / "non-existing-folder").native();
   // Emulate that user selected that folder
@@ -138,10 +130,10 @@ void MainWindowIntegrationTest::selectedNonExistingFolderTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
 }
 
-void MainWindowIntegrationTest::invalidRegexTest() {
+TEST_F(MainWindowIntegrationTest, invalidRegex) {
   // Emulate that user selected a proper folder for search
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
       .WillOnce(Return(std::optional<std::string>{RootTestFolder.native()}));
@@ -156,10 +148,10 @@ void MainWindowIntegrationTest::invalidRegexTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
 }
 
-void MainWindowIntegrationTest::searchCanceledTest() {
+TEST_F(MainWindowIntegrationTest, searchCanceled) {
   // Return an empty `std::optional` to emulate that the user
   // canceled search
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
@@ -175,10 +167,10 @@ void MainWindowIntegrationTest::searchCanceledTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Check that no signal about process finishing is emitted, while search
   // wasn't started at all
-  QCOMPARE(finish.count(), 0);
+  EXPECT_EQ(finish.count(), 0);
 }
 
-void MainWindowIntegrationTest::emptyFolderSelectedTest() {
+TEST_F(MainWindowIntegrationTest, emptyFolderSelected) {
   auto selectedFolder = (RootTestFolder / "emptyFolder").native();
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
       .WillOnce(Return(std::optional<std::string>{selectedFolder}));
@@ -192,11 +184,11 @@ void MainWindowIntegrationTest::emptyFolderSelectedTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
-  QCOMPARE(m_mainWindow->searchOutput()->toPlainText(), "");
+  EXPECT_TRUE(finish.wait(1000));
+  EXPECT_EQ(m_mainWindow->searchOutput()->toPlainText(), "");
 }
 
-void MainWindowIntegrationTest::directoryWithoutSubfoldersAreSelectedTest() {
+TEST_F(MainWindowIntegrationTest, directoryWithoutSubfoldersAreSelected) {
   // Build the path to the folder, that contains only files without subfolders
   auto selectedFolder = (RootTestFolder / "folderWithFiles").native();
   // Emulate that user selected previously constructed path
@@ -215,39 +207,23 @@ void MainWindowIntegrationTest::directoryWithoutSubfoldersAreSelectedTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
 
   // Obtain the text from `searchOutput`
   auto resultingText = m_mainWindow->searchOutput()->toPlainText();
-  {
-    // Construct message about failure to open files without any permission
-    auto failedToFind =
-        QString("Filed to parse: %1/no-perms.txt").arg(selectedFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(failedToFind));
-  }
-
-  {
-    // Construct message about starting with text file and finding single match
-    auto fileFound = QString("Start file:%1/text.txt\n  One line test")
-                         .arg(selectedFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(fileFound));
-  }
-
-  {
-    // Construct message about starting with symlink and finding single match
-    auto symlinkFound = QString("Start file:%1/symlink.txt\n  One line test")
-                            .arg(selectedFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(symlinkFound));
-  }
+  EXPECT_THAT(
+      resultingText.toStdString(),
+      AllOf(ContainsRegex("Filed to parse: .+/folderWithFiles/no-perms.txt"),
+            ContainsRegex(
+                "Start file:.+/folderWithFiles/text.txt\n  One line test"),
+            ContainsRegex(
+                "Start file:.+/folderWithFiles/symlink.txt\n  One line test")));
 
   // Check that total number of lines in the resulted text is "5"
-  QCOMPARE(resultingText.count('\n'), 4);
+  EXPECT_EQ(resultingText.count('\n'), 4);
 }
 
-void MainWindowIntegrationTest::directoryWithSubfoldersAreSelectedTest() {
+TEST_F(MainWindowIntegrationTest, directoryWithSubfoldersAreSelected) {
   // Emulate that user selected root-folder with files and subfolders
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
       .WillOnce(Return(std::optional<std::string>{RootTestFolder}));
@@ -264,53 +240,24 @@ void MainWindowIntegrationTest::directoryWithSubfoldersAreSelectedTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
 
   // Obtain the text from `searchOutput`
   auto resultingText = m_mainWindow->searchOutput()->toPlainText();
+  EXPECT_THAT(
+      resultingText.toStdString(),
+      AllOf(ContainsRegex("Filed to parse: .+/folderWithFiles/no-perms.txt"),
+            ContainsRegex(
+                "Start file:.+/folderWithFiles/text.txt\n  One line test"),
+            ContainsRegex(
+                "Start file:.+/folderWithFiles/symlink.txt\n  One line test"),
+            ContainsRegex("Start file:.+/hardlink.txt\n  One line test")));
 
-  {
-    // Construct a message about failure to open files without any permission
-    auto failedToFind =
-        QString("Filed to parse: %1/folderWithFiles/no-perms.txt")
-            .arg(RootTestFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(failedToFind));
-  }
-
-  {
-    // Construct a message about starting text file and finding single match in
-    // it
-    auto fileFound =
-        QString("Start file:%1/folderWithFiles/text.txt\n  One line test")
-            .arg(RootTestFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(fileFound));
-  }
-
-  {
-    // Construct a message about starting symlink and finding single match in
-    // it
-    auto symlinkFound =
-        QString("Start file:%1/folderWithFiles/symlink.txt\n  One line test")
-            .arg(RootTestFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(symlinkFound));
-  }
-
-  {
-    // Construct a message about starting hardlink and finding single match in
-    // it
-    auto hardlink = QString("Start file:%1/hardlink.txt\n  One line test")
-                        .arg(RootTestFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(hardlink));
-  }
   // Check that total number of lines in the resulted text is "7"
-  QCOMPARE(resultingText.count('\n'), 6);
+  EXPECT_EQ(resultingText.count('\n'), 6);
 }
 
-void MainWindowIntegrationTest::regexNotMatchTest() {
+TEST_F(MainWindowIntegrationTest, regexNotMatch) {
   auto selectedFolder = (RootTestFolder / "folderWithFiles").native();
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
       .WillOnce(Return(std::optional<std::string>{selectedFolder}));
@@ -324,38 +271,14 @@ void MainWindowIntegrationTest::regexNotMatchTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
   // Obtain the text from `searchOutput`
   auto resultingText = m_mainWindow->searchOutput()->toPlainText();
-  {
-    // Construct a message about failure to open files without any permission
-    auto failedToFind =
-        QString("Filed to parse: %1/no-perms.txt").arg(selectedFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(failedToFind));
-  }
-
-  {
-    // Construct a message about starting searching matches in the text file
-    auto fileFound =
-        QString("Start file:%1/text.txt").arg(selectedFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(fileFound));
-  }
-
-  {
-    // Construct a message about starting searching matches in the symlink
-    auto symlinkFound =
-        QString("Start file:%1/symlink.txt").arg(selectedFolder.c_str());
-    // Check that resulted text contains that message
-    QVERIFY(resultingText.contains(symlinkFound));
-  }
+  EXPECT_THAT(
+      resultingText.toStdString(),
+      AllOf(ContainsRegex("Filed to parse: .+/folderWithFiles/no-perms.txt"),
+            ContainsRegex("Start file:.+/folderWithFiles/text.txt"),
+            ContainsRegex("Start file:.+/folderWithFiles/symlink.txt")));
   // Check that total number of lines in the resulted text is "3"
-  QCOMPARE(resultingText.count('\n'), 2);
+  EXPECT_EQ(resultingText.count('\n'), 2);
 }
-
-int main(int argc, char *argv[]) {
-  return testRun<MainWindowIntegrationTest>(argc, argv);
-}
-
-#include "MainWindowIntegrationTest.moc"

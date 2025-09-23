@@ -10,7 +10,6 @@
 #include <optional>
 
 #include "MainWindowImpl.h"
-#include "TestRunner.h"
 #include "files-search/SearcherMock.h"
 #include "mocks/DialogsMock.h"
 
@@ -26,24 +25,20 @@ void PrintTo(const QString &s, ::std::ostream *os) {
   *os << "'" << s.toStdString() << "'";
 }
 
-class MainWindowTest : public QObject {
-  Q_OBJECT
- private slots:
-  // Create mocks and tested class before each test-case invocation
-  void init();
-  void cleanup();
- private slots:
-  void folderNotSelectedTest();
-  void searchFailedTest();
-  void searchSucceedTest();
+class MainWindowTest : public testing::Test {
+ public:
+  // Setup environment before each test-case invocation
+  MainWindowTest();
+  // Cleanup step after each test-case
+  ~MainWindowTest();
 
- private:
+ protected:
   std::unique_ptr<MainWindowImpl> m_mainWindow;
   StrictMock<DialogsMock> *m_dialogs = nullptr;
   StrictMock<SearcherMock> *m_searcher = nullptr;
 };
 
-void MainWindowTest::init() {
+MainWindowTest::MainWindowTest() {
   // Construct mocks
   auto dialogs = std::make_unique<StrictMock<DialogsMock>>();
   m_dialogs = dialogs.get();
@@ -54,15 +49,13 @@ void MainWindowTest::init() {
   m_mainWindow =
       std::make_unique<MainWindowImpl>(std::move(searcher), std::move(dialogs));
 }
-
-void MainWindowTest::cleanup() {
+MainWindowTest::~MainWindowTest() {
   // On cleanup delete tested class and all mocks
   m_mainWindow.reset();
   m_dialogs = nullptr;
   m_searcher = nullptr;
 }
-
-void MainWindowTest::folderNotSelectedTest() {
+TEST_F(MainWindowTest, folderNotSelected) {
   InSequence s;
 
   // Call to `getSearchFolder` should return
@@ -79,7 +72,7 @@ void MainWindowTest::folderNotSelectedTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
 }
 
-void MainWindowTest::searchFailedTest() {
+TEST_F(MainWindowTest, searchFailed) {
   // Emulate that use selected some non-existing folder
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
       .WillOnce(Return(std::optional<std::string>{"test/my-folder"}));
@@ -101,10 +94,10 @@ void MainWindowTest::searchFailedTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
 
   // Check that signal about search finish is generated without the timeout
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
 }
 
-void MainWindowTest::searchSucceedTest() {
+TEST_F(MainWindowTest, searchSucceed) {
   // Emulate selection of a folder via `dialogs` mock
   EXPECT_CALL(*m_dialogs, getSearchFolder(m_mainWindow.get()))
       .WillOnce(Return(std::optional<std::string>{"test/my-folder"}));
@@ -132,13 +125,10 @@ void MainWindowTest::searchSucceedTest() {
   QTest::mouseClick(m_mainWindow->search(), Qt::MouseButton::LeftButton);
   // Wait until the search process is finished and test that timeout isn't
   // exhausted
-  QVERIFY(finish.wait(1000));
+  EXPECT_TRUE(finish.wait(1000));
 
   // Test that content `searchOutput` is the same as expected
-  QCOMPARE(m_mainWindow->searchOutput()->toPlainText(),
-           "Start file:test/my-folder/my-file.txt\n  one line\n  another line");
+  EXPECT_EQ(
+      m_mainWindow->searchOutput()->toPlainText(),
+      "Start file:test/my-folder/my-file.txt\n  one line\n  another line");
 }
-
-int main(int argc, char *argv[]) { return testRun<MainWindowTest>(argc, argv); }
-
-#include "MainWindowTest.moc"

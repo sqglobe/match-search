@@ -2,7 +2,6 @@
 #include <QSignalSpy>
 #include <QTest>
 
-#include "TestRunner.h"
 #include "files-search/MatchesCollectorMock.h"
 #include "files-search/SearcherMock.h"
 #include "impl/SearchWorker.h"
@@ -14,13 +13,7 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrictMock;
 
-class SearchWorkerTest : public QObject {
-  Q_OBJECT
- private slots:
-  void paramForwardedTest();
-};
-
-void SearchWorkerTest::paramForwardedTest() {
+TEST(SearchWorkerTest, paramForwarded) {
   // Construct mock
   auto searcher = std::make_unique<StrictMock<SearcherMock>>();
   // Setup call expectations for the mock, which returns
@@ -41,9 +34,9 @@ void SearchWorkerTest::paramForwardedTest() {
   worker.startSearch("/test/path", "some regex");
 
   // Check that signal about search start is emitted
-  QCOMPARE(searchStarted.count(), 1);
+  ASSERT_EQ(searchStarted.count(), 1);
   // Test that signal about search finish is emitted
-  QCOMPARE(searchFinished.count(), 1);
+  ASSERT_EQ(searchFinished.count(), 1);
 
   // Get the parameters of the first generated signal
   auto argument = searchFinished
@@ -53,11 +46,5 @@ void SearchWorkerTest::paramForwardedTest() {
                       // Cast that parameter to the `std::expected`
                       .value<std::expected<void, std::string>>();
   // Test that `std::expected` contains a value
-  QVERIFY(argument.has_value());
+  EXPECT_TRUE(argument.has_value());
 }
-
-int main(int argc, char *argv[]) {
-  return testRun<SearchWorkerTest>(argc, argv);
-}
-
-#include "SearchWorkerTest.moc"
