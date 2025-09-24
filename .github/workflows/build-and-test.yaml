@@ -26,7 +26,7 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          su -c "ctest -j0 --output-on-failure" ubuntu
+          QT_QPA_PLATFORM=offscreen su -c "ctest -j --output-on-failure" ubuntu
       - name: Save artifacts
         run: |
           cd build 
