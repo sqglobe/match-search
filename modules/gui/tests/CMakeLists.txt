@@ -27,6 +27,7 @@ target_link_libraries(gui-unit-test gui-tests-deps)
 
 # Discover all test-cases and register them within CTest
 gtest_discover_tests(gui-unit-test
+                     DISCOVERY_MODE PRE_TEST
                      PROPERTIES  
                        LABELS UNIT_TEST
                        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
@@ -42,6 +43,7 @@ target_link_libraries(gui-integration-test gui-tests-deps)
 
 # Discover all test-cases and register them within CTest
 gtest_discover_tests(gui-integration-test
+                     DISCOVERY_MODE PRE_TEST
                      PROPERTIES  
                         LABELS INTEGRATION_TEST
                         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
