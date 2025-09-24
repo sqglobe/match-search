@@ -6,34 +6,44 @@ set(CMAKE_AUTOMOC ON)
 
 # Library includes all dependencies for tests
 add_library(gui-tests-deps INTERFACE)
-target_link_libraries(gui-tests-deps INTERFACE Qt::Test GTest::gmock gui files-search-mocks files-search)
+target_link_libraries(gui-tests-deps INTERFACE Qt::Test GTest::gtest GTest::gmock gui files-search-mocks files-search)
 # Enable access in tests into implementation folder
 target_include_directories(gui-tests-deps INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 # Add current `include` directory into the include folders
 target_include_directories(gui-tests-deps INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 # Enable current source directory as include folder for local mocks
 target_include_directories(gui-tests-deps INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+# Add main.cpp as a source file, so any target that links this lib will have it transitively
+target_sources(gui-tests-deps INTERFACE main.cpp)
 
-# Function creates a new testing executable and registers it with CTest
-# based on the source file name
-function(add_qt_test SOURCE_FILE)
-  get_filename_component(TARGET_NAME ${SOURCE_FILE} NAME_WE)
-  add_executable(${TARGET_NAME} ${SOURCE_FILE})
-  add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
-  target_link_libraries(${TARGET_NAME} PRIVATE gui-tests-deps)
-endfunction()
+# Add executable with tests
+add_executable(gui-unit-test
+     PlainTextMatchCollectorTest.cpp
+     MainWindowTest.cpp
+     SearchWorkerTest.cpp
+)
 
-# Add tests
-add_qt_test(PlainTextMatchCollectorTest.cpp)
-add_qt_test(MainWindowTest.cpp)
-add_qt_test(SearchWorkerTest.cpp)
-add_qt_test(MainWindowIntegrationTest.cpp)
+target_link_libraries(gui-unit-test gui-tests-deps)
 
-# Setup label for unit-tests
-set_property(TEST PlainTextMatchCollectorTest PROPERTY LABELS UNIT_TEST)
-set_property(TEST MainWindowTest PROPERTY LABELS UNIT_TEST)
-set_property(TEST SearchWorkerTest PROPERTY LABELS UNIT_TEST)
+# Discover all test-cases and register them within CTest
+gtest_discover_tests(gui-unit-test
+                     DISCOVERY_MODE PRE_TEST
+                     PROPERTIES  
+                       LABELS UNIT_TEST
+                       ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 
-# Add label for integration test
-set_property(TEST MainWindowIntegrationTest PROPERTY LABELS INTEGRATION_TEST)
-             
+)
+
+# Add executable with integration tests
+add_executable(gui-integration-test
+     MainWindowIntegrationTest.cpp
+)
+
+target_link_libraries(gui-integration-test gui-tests-deps)
+
+# Discover all test-cases and register them within CTest
+gtest_discover_tests(gui-integration-test
+                     DISCOVERY_MODE PRE_TEST
+                     PROPERTIES  
+                        LABELS INTEGRATION_TEST
+                        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
