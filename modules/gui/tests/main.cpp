@@ -6,10 +6,10 @@
 
 int main(int argc, char *argv[]) {
   QApplication app{argc, argv};
+  ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleMock(&argc, argv);
 
-  QTimer::singleShot(0, [&]() {
-    ::testing::InitGoogleTest(&argc, argv);
-    ::testing::InitGoogleMock(&argc, argv);
+  QTimer::singleShot(0, [&app]() {
     auto testResult = RUN_ALL_TESTS();
     app.exit(testResult);
   });
