@@ -1,11 +1,8 @@
 find_package(Qt6 REQUIRED COMPONENTS Test)
 find_package(GTest REQUIRED)
 
-# Enable Qt6 MOC
-set(CMAKE_AUTOMOC ON)
-
 # Library includes all dependencies for tests
-add_library(gui-tests-deps STATIC)
+add_library(gui-tests-deps STATIC main.cpp)
 target_link_libraries(gui-tests-deps PUBLIC Qt::Test GTest::gtest GTest::gmock gui files-search-mocks files-search)
 # Enable access in tests into implementation folder
 target_include_directories(gui-tests-deps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../src")
@@ -13,8 +10,6 @@ target_include_directories(gui-tests-deps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..
 target_include_directories(gui-tests-deps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 # Enable current source directory as include folder for local mocks
 target_include_directories(gui-tests-deps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-# Add main.cpp as a source file, so any target that links this lib will have it transitively
-target_sources(gui-tests-deps PUBLIC main.cpp)
 
 # Add executable with tests
 add_executable(gui-unit-test
