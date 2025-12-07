@@ -22,6 +22,15 @@ add_library(gui STATIC
   impl/MainWindow.cpp
 )
 
+target_sources(gui
+  PUBLIC
+   FILE_SET HEADERS
+   BASE_DIRS 
+    include
+   FILES
+    include/gui/Factory.h
+)
+
 # Add the form file into the list of sources and make it possible
 # for CMake invoke Qt UIC for it
 target_sources(gui PRIVATE impl/ui/mainwindow.ui)
@@ -34,6 +43,3 @@ target_link_libraries(gui  PUBLIC Qt::Widgets)
 
 # Make implementation folder available only internal for the library
 target_include_directories(gui PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-
-# `include` folder is public and available for users of that library
-target_include_directories(gui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
