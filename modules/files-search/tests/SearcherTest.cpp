@@ -24,6 +24,10 @@ class SearcherTest : public ::testing::Test {
   StrictMock<MatchesCollectorMock> m_matchesCollectorMock;
 };
 
+TEST(SearcherDeathTest, checkIfFailedOnNullptr) {
+  EXPECT_DEBUG_DEATH(SearcherImpl(std::unique_ptr<DirectoryWalker>()), "");
+}
+
 TEST_F(SearcherTest, walkerFailed) {
   EXPECT_CALL(*m_directoryWalker,
               walk(std::filesystem::path("some") / "path", _, _))

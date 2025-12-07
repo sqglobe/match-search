@@ -1,12 +1,16 @@
 #include "impl/SearcherImpl.h"
 
+#include <assert.h>
+
 #include "files-search/MatchesCollector.h"
 #include "impl/MatchSeekerImpl.h"
 
 using namespace files_search;
 
 SearcherImpl::SearcherImpl(std::unique_ptr<DirectoryWalker> walker)
-    : m_walker(std::move(walker)) {}
+    : m_walker(std::move(walker)) {
+  assert(m_walker != nullptr);
+}
 
 std::expected<void, std::string> SearcherImpl::search(
     std::string_view path, std::string_view regex,
