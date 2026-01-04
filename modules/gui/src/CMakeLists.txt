@@ -17,6 +17,8 @@ add_library(gui STATIC
   impl/PlainTextMatchCollector.cpp
   impl/SearchWorker.h
   impl/SearchWorker.cpp
+  impl/WorkerThread.h
+  impl/WorkerThread.cpp
 
   impl/MainWindow.h
   impl/MainWindow.cpp

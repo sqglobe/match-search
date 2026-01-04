@@ -6,6 +6,7 @@
 
 #include "files-search/Searcher.h"
 #include "impl/SearchWorker.h"
+#include "impl/WorkerThread.h"
 #include "impl/interfaces/Dialogs.h"
 
 class QPushButton;
@@ -41,6 +42,6 @@ class MainWindow : public QMainWindow {
   std::unique_ptr<Ui::MainWindow, void (*)(Ui::MainWindow *)> m_ui;
   std::unique_ptr<Dialogs> m_dialogs;
   std::unique_ptr<SearchWorker> m_worker;
-  std::unique_ptr<QThread, void (*)(QThread *)> m_thread;
+  WorkerThread m_thread;
 };
 }  // namespace gui
