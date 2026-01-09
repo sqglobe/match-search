@@ -1,3 +1,5 @@
+#include <match_search/testing/expected_matcher.h>
+
 #include <QPlainTextEdit>
 #include <QSignalSpy>
 #include <QTest>
@@ -9,6 +11,7 @@
 using namespace gui;
 using namespace files_search;
 
+using match_search::testing::IsExpected;
 using ::testing::_;
 using ::testing::Return;
 using ::testing::StrictMock;
@@ -39,12 +42,12 @@ TEST(SearchWorkerTest, paramForwarded) {
   ASSERT_EQ(searchFinished.count(), 1);
 
   // Get the parameters of the first generated signal
-  auto argument = searchFinished
-                      .takeFirst()
-                      // Get the first parameter of the generated signal
-                      .at(0)
-                      // Cast that parameter to the `std::expected`
-                      .value<std::expected<void, std::string>>();
+  auto arg = searchFinished
+                 .takeFirst()
+                 // Get the first parameter of the generated signal
+                 .at(0)
+                 // Cast that parameter to the `std::expected`
+                 .value<std::expected<void, std::string>>();
   // Test that `std::expected` contains a value
-  EXPECT_TRUE(argument.has_value());
+  EXPECT_THAT(arg, IsExpected());
 }

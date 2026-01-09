@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
+#include <match_search/testing/expected_matcher.h>
 
 #include "files-search/MatchesCollectorMock.h"
 #include "impl/SearcherImpl.h"
 #include "mocks/DirectoryWalkerMock.h"
 
+using match_search::testing::HasError;
+using match_search::testing::IsExpected;
 using ::testing::_;
 using ::testing::Return;
 using ::testing::StrictMock;
@@ -37,8 +40,7 @@ TEST_F(SearcherTest, walkerFailed) {
       m_searcher->search((std::filesystem::path("some") / "path").c_str(),
                          "1232", m_matchesCollectorMock);
 
-  ASSERT_FALSE(res.has_value());
-  EXPECT_EQ(res.error(), "Failed");
+  EXPECT_THAT(res, HasError("Failed"));
 }
 
 TEST_F(SearcherTest, oneFileFound) {
@@ -72,5 +74,5 @@ TEST_F(SearcherTest, oneFileFound) {
       m_searcher->search((std::filesystem::path("some") / "path").c_str(),
                          ".+line", m_matchesCollectorMock);
 
-  EXPECT_TRUE(res.has_value());
+  EXPECT_THAT(res, IsExpected());
 }
