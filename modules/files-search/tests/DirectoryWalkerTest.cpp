@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <match_search/testing/expected_matcher.h>
+#include <match_search/testing/tmp_folder.h>
 
 #include <cstdlib>
 #include <filesystem>
@@ -8,6 +10,8 @@
 #include "impl/DirectoryWalkerImpl.h"
 #include "mocks/MatchSeekerMock.h"
 
+using match_search::testing::HasError;
+using match_search::testing::IsExpected;
 using ::testing::_;
 using ::testing::StrictMock;
 using namespace files_search;
@@ -20,16 +24,10 @@ class DirectoryWalkerTest : public testing::Test {
   // isn't possible to add `ASSERT_*` macro to check if file and folders
   // are properly constructed
   void SetUp() override {
-    // Generate rundom folder name
-    auto folderName = "DirectoryWalkerTest_" + std::to_string(std::rand());
     // Store generated name in the member for further usage
-    RootTestFolder = fs::temp_directory_path() / folderName;
-    // If generated name collides with existing one, repeat the process
-    if (fs::exists(RootTestFolder)) {
-      auto folderName = "DirectoryWalkerTest_" + std::to_string(std::rand());
-      RootTestFolder = fs::temp_directory_path() / folderName;
-    }
-    ASSERT_TRUE(fs::create_directory(RootTestFolder));
+    RootTestFolder =
+        match_search::testing::temporaryFolder("DirectoryWalkerTest");
+    ASSERT_TRUE(fs::exists(RootTestFolder));
 
     // Construct a folder that remaining empty
     ASSERT_TRUE(fs::create_directory(RootTestFolder / "emptyFolder"));
@@ -77,14 +75,13 @@ TEST_F(DirectoryWalkerTest, nonExistingFolder) {
   auto res = m_walker.walk(fs::temp_directory_path() / "my-test" / "folder",
                            m_matchSeekerMock, m_matchCollectorMock);
 
-  ASSERT_FALSE(res.has_value());
-  EXPECT_EQ(res.error(), "No such file or directory");
+  EXPECT_THAT(res, HasError("No such file or directory"));
 }
 
 TEST_F(DirectoryWalkerTest, emptyFolder) {
   auto res = m_walker.walk(RootTestFolder / "emptyFolder", m_matchSeekerMock,
                            m_matchCollectorMock);
-  EXPECT_TRUE(res.has_value());
+  EXPECT_THAT(res, IsExpected());
 }
 
 TEST_F(DirectoryWalkerTest, withoutSubfolders) {
@@ -103,7 +100,7 @@ TEST_F(DirectoryWalkerTest, withoutSubfolders) {
 
   auto res = m_walker.walk(RootTestFolder / "folderWithFiles",
                            m_matchSeekerMock, m_matchCollectorMock);
-  EXPECT_TRUE(res.has_value());
+  EXPECT_THAT(res, IsExpected());
 }
 
 TEST_F(DirectoryWalkerTest, withSubfolders) {
@@ -125,5 +122,5 @@ TEST_F(DirectoryWalkerTest, withSubfolders) {
 
   auto res =
       m_walker.walk(RootTestFolder, m_matchSeekerMock, m_matchCollectorMock);
-  EXPECT_TRUE(res.has_value());
+  EXPECT_THAT(res, IsExpected());
 }

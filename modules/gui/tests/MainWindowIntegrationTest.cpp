@@ -1,4 +1,5 @@
 #include <gmock/gmock.h>
+#include <match_search/testing/tmp_folder.h>
 
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -51,20 +52,9 @@ void MainWindowIntegrationTest::SetUp() {
   // Create a main window
   m_mainWindow = std::make_unique<MainWindowImpl>(files_search::makeSearcher(),
                                                   std::move(dialogs));
-
-  // Generate rundom name for the test to store files and folder
-  auto folderName = "MainWindowIntegrationTest_" + std::to_string(std::rand());
-  // Store that folder for the further usage
-  RootTestFolder = fs::temp_directory_path() / folderName;
-  // If name collides, regenerated it
-  if (fs::exists(RootTestFolder)) {
-    auto folderName =
-        "MainWindowIntegrationTest_" + std::to_string(std::rand());
-    RootTestFolder = fs::temp_directory_path() / folderName;
-  }
-
-  // Create the root folder
-  ASSERT_TRUE(fs::create_directory(RootTestFolder));
+  RootTestFolder =
+      match_search::testing::temporaryFolder("MainWindowIntegrationTest");
+  ASSERT_TRUE(fs::exists(RootTestFolder));
 
   // The empty folder to check that passing empty folder results no founds
   ASSERT_TRUE(fs::create_directory(RootTestFolder / "emptyFolder"));

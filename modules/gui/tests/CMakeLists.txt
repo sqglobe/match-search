@@ -3,7 +3,7 @@ find_package(GTest REQUIRED)
 
 # Library includes all dependencies for tests
 add_library(gui-tests-deps STATIC main.cpp)
-target_link_libraries(gui-tests-deps PUBLIC Qt::Test GTest::gtest GTest::gmock gui files-search-mocks files-search)
+target_link_libraries(gui-tests-deps PUBLIC Qt::Test GTest::gtest GTest::gmock gui files-search-mocks files-search match-search-testing)
 # Enable access in tests into implementation folder
 target_include_directories(gui-tests-deps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 # Add current `include` directory into the include folders

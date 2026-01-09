@@ -8,7 +8,7 @@ add_executable(files-search-tests
 )
 
 # Link all required libraries
-target_link_libraries(files-search-tests  GTest::gtest_main files-search-mocks)
+target_link_libraries(files-search-tests  GTest::gtest_main files-search-mocks match-search-testing)
 
 # Enable private include directories for tests
 target_include_directories(files-search-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
