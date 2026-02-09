@@ -11,8 +11,8 @@
 using namespace gui;
 using namespace files_search;
 
-using match_search::testing::IsExpected;
 using ::testing::_;
+using ::testing::ElementsAre;
 using ::testing::Return;
 using ::testing::StrictMock;
 
@@ -38,16 +38,7 @@ TEST(SearchWorkerTest, paramForwarded) {
 
   // Check that signal about search start is emitted
   ASSERT_EQ(searchStarted.count(), 1);
-  // Test that signal about search finish is emitted
-  ASSERT_EQ(searchFinished.count(), 1);
 
-  // Get the parameters of the first generated signal
-  auto arg = searchFinished
-                 .takeFirst()
-                 // Get the first parameter of the generated signal
-                 .at(0)
-                 // Cast that parameter to the `std::expected`
-                 .value<std::expected<void, std::string>>();
-  // Test that `std::expected` contains a value
-  EXPECT_THAT(arg, IsExpected());
+  EXPECT_THAT(searchFinished, ElementsAre(QList({QVariant::fromValue(
+                                  std::expected<void, std::string>{})})));
 }
