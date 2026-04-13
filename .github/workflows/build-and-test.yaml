@@ -1,9 +1,7 @@
 name: Build and run tests
 run-name: ${{ github.actor }} builds and tests the change
 on:
-  push:
-    branches-ignore:
-      - main
+  pull_request
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
