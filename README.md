@@ -7,7 +7,7 @@ It's a GUI application based on Qt6 and it obtains path and regular expression f
 
 In order to build it you need:
 
-* Compiler supporting `std::expect`, GCC-14 for example,
+* Compiler supporting `std::expected`, GCC-14 for example,
 * CMake
 * Qt6,
 * GTest and GMock.
@@ -23,7 +23,7 @@ This application consists of several modules:
 * **gui** - library representing user interface,
 * **match-search** - the executable that combines both libraries together.
 
-The overall architecture is depicted on the diagram bellow:
+The overall architecture is depicted on the diagram below:
 
 ![Overall project diagram](docs/architecture.png)
 

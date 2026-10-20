@@ -203,7 +203,7 @@ TEST_F(MainWindowIntegrationTest, directoryWithoutSubfoldersAreSelected) {
   auto resultingText = m_mainWindow->searchOutput()->toPlainText();
   EXPECT_THAT(
       resultingText.toStdString(),
-      AllOf(ContainsRegex("Filed to parse: .+/folderWithFiles/no-perms.txt"),
+      AllOf(ContainsRegex("Failed to parse: .+/folderWithFiles/no-perms.txt"),
             ContainsRegex(
                 "Start file:.+/folderWithFiles/text.txt\n  One line test"),
             ContainsRegex(
@@ -236,7 +236,7 @@ TEST_F(MainWindowIntegrationTest, directoryWithSubfoldersAreSelected) {
   auto resultingText = m_mainWindow->searchOutput()->toPlainText();
   EXPECT_THAT(
       resultingText.toStdString(),
-      AllOf(ContainsRegex("Filed to parse: .+/folderWithFiles/no-perms.txt"),
+      AllOf(ContainsRegex("Failed to parse: .+/folderWithFiles/no-perms.txt"),
             ContainsRegex(
                 "Start file:.+/folderWithFiles/text.txt\n  One line test"),
             ContainsRegex(
@@ -266,7 +266,7 @@ TEST_F(MainWindowIntegrationTest, regexNotMatch) {
   auto resultingText = m_mainWindow->searchOutput()->toPlainText();
   EXPECT_THAT(
       resultingText.toStdString(),
-      AllOf(ContainsRegex("Filed to parse: .+/folderWithFiles/no-perms.txt"),
+      AllOf(ContainsRegex("Failed to parse: .+/folderWithFiles/no-perms.txt"),
             ContainsRegex("Start file:.+/folderWithFiles/text.txt"),
             ContainsRegex("Start file:.+/folderWithFiles/symlink.txt")));
   // Check that total number of lines in the resulted text is "3"

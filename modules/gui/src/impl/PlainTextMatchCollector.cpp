@@ -5,7 +5,7 @@
 using namespace gui;
 
 void PlainTextMatchCollector::failed(std::string_view path) {
-  QString line("Filed to parse: ");
+  QString line("Failed to parse: ");
   line.append(path.data());
   emit append(line);
 }

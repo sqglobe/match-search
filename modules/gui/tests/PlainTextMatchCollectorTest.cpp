@@ -19,7 +19,7 @@ TEST(PlainTextMatchCollectorTest, failure) {
   collector.failed("test/my-file.txt");
   // Check the generated signal has expected parameters
   EXPECT_THAT(
-      spy, ElementsAre(QList<QVariant>({"Filed to parse: test/my-file.txt"})));
+      spy, ElementsAre(QList<QVariant>({"Failed to parse: test/my-file.txt"})));
 }
 
 TEST(PlainTextMatchCollectorTest, startFileAndMatch) {
